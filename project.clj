@@ -9,7 +9,7 @@
                  [org.clojure/clojurescript "0.0-2280"]
 
                  [com.andrewmcveigh/cljs-time "0.2.4"]
-                 [om "0.7.1"]])
+                 [om "0.7.1"]]
 
   :plugins [[jamesnvc/lein-lesscss "1.3.4"]]
 
