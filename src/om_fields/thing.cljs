@@ -36,9 +36,9 @@
                     thing-result-chan  (om/set-state! owner :thing v)
                     search-result-chan (om/set-state! owner :results v)
                     input-chan (if (empty? v)
-                                 (update-fn nil)
-                                 (do (om/set-state! owner :thing {:entity/name v})
-                                     (search! {:name v} search-result-chan))))
+                                 (do (update-fn nil)
+                                     (om/set-state! owner :results []))
+                                 (search! {:name v} search-result-chan)))
                   (recur))))))
 
       om/IRenderState

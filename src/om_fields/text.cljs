@@ -14,7 +14,7 @@
   "editable text field that shows and allows editing of a value that is actually different in reality
    useful when state value is not a string
    ex. dates: 'Monday' vs Date('2014-10-24 9:00:00')"
-  [cursor owner {:keys [update-fn placeholder edit-key value-to-string string-to-value value-validate multi-line] :as opts}]
+  [cursor owner {:keys [update-fn class type placeholder edit-key value-to-string string-to-value value-validate multi-line] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key %))
         string-to-value (or string-to-value identity)
         value-valid? (or value-validate (constantly true))
@@ -51,16 +51,18 @@
 
       om/IRenderState
       (render-state [_ state]
-        ((if multi-line dom/textarea dom/input)
-         #js {:value (state :display-value)
-              :placeholder placeholder
-              :ref "textarea"
-              :rows 1
-              :className (str "input " (state :state) (when (empty? (state :display-value)) "" ))
-              :onChange (fn [e]
-                          (let [el (.. e -target)]
-                            (when multi-line (auto-resize el))
-                            (om/set-state! owner :state "editing")
-                            (put! (state :change-chan) (.-value el))
-                            (om/set-state! owner :display-value (.-value el))))})))))
+        (dom/div nil
+          ((if multi-line dom/textarea dom/input)
+           #js {:value (state :display-value)
+                :placeholder placeholder
+                :ref "textarea"
+                :rows 1
+                :type type
+                :className (str "input" " " class " " (state :state))
+                :onChange (fn [e]
+                            (let [el (.. e -target)]
+                              (when multi-line (auto-resize el))
+                              (om/set-state! owner :state "editing")
+                              (put! (state :change-chan) (.-value el))
+                              (om/set-state! owner :display-value (.-value el))))}))))))
 

@@ -7,8 +7,7 @@
             [clojure.string :refer [blank?]]
 
             [cljs-time.format :refer [formatter formatters unparse]]
-            [cljs-time.core :refer [date-time]]
-            [chrono]))
+            [cljs-time.core :refer [date-time]]))
 
 (defmulti ^:export input (fn [data owner opts] (opts :type)))
 
@@ -17,6 +16,13 @@
 
 (defn str-or-nil [s]
   (if (blank? s) nil s))
+
+
+(defmethod input :password [data owner opts]
+  (human-friendly-editable data owner (assoc opts
+                                        :type "password"
+                                        :value-to-string identity
+                                        :string-to-value identity)))
 
 (defmethod input :read-only [_]
   (fn [data owner opts]
@@ -165,4 +171,16 @@
 (defmethod input :multiselect [data owner opts]
   (multiselect data owner opts))
 
+(defmethod input :checkbox [cursor owner {:keys [update-fn edit-key label] :as opts}]
+  (let [update-fn (or update-fn #(om/update! cursor edit-key %))]
+    (reify
+      om/IRender
+      (render [_]
+        (dom/label #js {:style #js {:cursor "pointer"}}
+          (dom/input #js {:type "checkbox"
+                          :style #js {:cursor "pointer"}
+                          :onClick (fn [e]
+                                      (update-fn (.. e -target -checked)))
+                          :checked (get-in cursor edit-key) })
+          label)))))
 
