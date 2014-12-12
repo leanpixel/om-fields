@@ -30,6 +30,12 @@
                                         :value-to-string identity
                                         :string-to-value str-or-nil)))
 
+(defmethod input :password [data owner opts]
+  (human-friendly-editable data owner (assoc opts
+                                        :type "password"
+                                        :value-to-string identity
+                                        :string-to-value str-or-nil)))
+
 (defmethod input :url [data owner opts]
   (human-friendly-editable data owner (assoc opts
                                         :string-to-value str-or-nil
