@@ -85,8 +85,9 @@
 (defmethod input :email [data owner opts]
   (human-friendly-editable data owner (assoc opts
                                         :value-validate (fn [value]
-                                                          (when value
-                                                            (re-matches #"(?i)[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}" value))))))
+                                                          (if value
+                                                            (re-matches #"(?i)[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}" value)
+                                                            true)))))
 
 
 
