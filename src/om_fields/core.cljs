@@ -17,13 +17,6 @@
 (defn str-or-nil [s]
   (if (blank? s) nil s))
 
-
-(defmethod input :password [data owner opts]
-  (human-friendly-editable data owner (assoc opts
-                                        :type "password"
-                                        :value-to-string identity
-                                        :string-to-value identity)))
-
 (defmethod input :read-only [_]
   (fn [data owner opts]
     (reify
@@ -39,8 +32,11 @@
 
 (defmethod input :url [data owner opts]
   (human-friendly-editable data owner (assoc opts
+                                        :string-to-value str-or-nil
                                         :value-validate (fn [value]
-                                                          (re-matches #"(?i)^(https?|ftp)://[^\s/$.?#].[^\s]*$" value)))))
+                                                          (if value
+                                                            (re-matches #"(?i)^(https?|ftp)://[^\s/$.?#].[^\s]*$" value)
+                                                            true)))))
 
 (defmethod input :long-text [data owner opts]
   (human-friendly-editable data owner (assoc opts
@@ -83,7 +79,8 @@
 (defmethod input :email [data owner opts]
   (human-friendly-editable data owner (assoc opts
                                         :value-validate (fn [value]
-                                                          (re-matches #"(?i)[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}" value)))))
+                                                          (when value
+                                                            (re-matches #"(?i)[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}" value))))))
 
 
 
