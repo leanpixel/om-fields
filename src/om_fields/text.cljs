@@ -47,6 +47,7 @@
       ; update display-value if the actual value is changed by something else
       om/IWillReceiveProps
       (will-receive-props [_ next-props]
+        (om/set-state! owner :state "start")
         (om/set-state! owner :display-value (value-to-string (get-in next-props edit-key))))
 
       om/IRenderState
