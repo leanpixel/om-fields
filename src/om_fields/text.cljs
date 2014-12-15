@@ -44,11 +44,12 @@
       (did-mount [_]
         (when multi-line (auto-resize (om/get-node owner "textarea"))))
 
-      ; update display-value if the actual value is changed by something else
+      ; update display-value if the actual value is changed elsewhere
       om/IWillReceiveProps
       (will-receive-props [_ next-props]
-        (om/set-state! owner :state "start")
-        (om/set-state! owner :display-value (value-to-string (get-in next-props edit-key))))
+        (when (not= (get-in next-props edit-key) (get-in (om/get-props owner) edit-key))
+          (om/set-state! owner :state "start")
+          (om/set-state! owner :display-value (value-to-string (get-in next-props edit-key)))))
 
       om/IRenderState
       (render-state [_ state]
