@@ -1,13 +1,13 @@
-(ns om-fields.thing
+(ns om-fields.fields.thing
     (:require-macros [cljs.core.async.macros :refer [go]])
     (:require [om.core :as om :include-macros]
               [om.dom :as dom :include-macros]
               [clojure.string :refer [join]]
-              [om-fields.text :refer [human-friendly-editable]]
-              [cljs.core.async :refer [put! chan <! alts!]]
-              [om-fields.util :refer [debounce]]))
+              [om-fields.interface :refer [field]]
+              [om-fields.editable :refer [editable]]
+              [cljs.core.async :refer [put! chan <! alts!]]))
 
-(defn thing [cursor owner {:keys [update-fn edit-key search! placeholder] :as opts}]
+(defmethod field :thing [cursor owner {:keys [update-fn edit-key search! placeholder] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key %))]
     (reify
       om/IInitState
@@ -33,7 +33,7 @@
                     select-chan (do (om/set-state! owner :thing v)
                                     (om/set-state! owner :results [])
                                     (update-fn (:db/id v)))
-                    thing-result-chan  (om/set-state! owner :thing v)
+                    thing-result-chan (om/set-state! owner :thing v)
                     search-result-chan (om/set-state! owner :results v)
                     input-chan (if (empty? v)
                                  (do (update-fn nil)
@@ -47,8 +47,9 @@
           (let [thing (state :thing)]
             (dom/div #js {:className "mini-record"}
               (dom/img #js {:className "image" :src (:entity/image thing)})
-              (om/build human-friendly-editable thing
-                        {:opts {:placeholder placeholder
+              (om/build editable thing
+                        {:opts {:type :thing
+                                :placeholder placeholder
                                 :edit-key [:entity/name]
                                 :update-fn #(put! (state :input-chan) %)}})
               (dom/span #js {:className "type"} (join ", " (map name (:entity/is-a thing))))))

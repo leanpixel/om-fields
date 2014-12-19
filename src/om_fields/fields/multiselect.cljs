@@ -1,9 +1,10 @@
-(ns om-fields.multiselect
+(ns om-fields.fields.multiselect
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [om-fields.editable :refer [editable]]
+            [om-fields.interface :refer [field]]
             [clojure.set :refer [union]]
-            [om-fields.text :refer [human-friendly-editable]]
             [cljs.core.async :refer [put! chan <! sub pub]]
             [om-fields.util :refer [debounce]]
             [clojure.string :as string]))
@@ -12,7 +13,7 @@
   (set! (.. el -style -width) "auto")
   (set! (.. el -style -width) (str (.-scrollWidth el) "px")))
 
-(defn multiselect [cursor owner {:keys [placeholder update-fn edit-key options] :as opts}]
+(defmethod field :multiselect [cursor owner {:keys [placeholder update-fn edit-key options] :as opts}]
   (let [options (or options #{})
         edit-key (or edit-key [])
         update-fn (or update-fn #(om/update! cursor edit-key %))]

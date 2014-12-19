@@ -1,16 +1,16 @@
-(ns om-fields.text
-    (:require-macros [cljs.core.async.macros :refer [go]])
-    (:require [om.core :as om :include-macros]
-              [om.dom :as dom :include-macros]
-              [cljs.core.async :refer [put! chan <! alts!]]
-              [clojure.string :as string]
-              [om-fields.util :refer [debounce]]))
+(ns om-fields.editable
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [om.core :as om :include-macros]
+            [om.dom :as dom :include-macros]
+            [om-fields.util :refer [debounce]]
+            [cljs.core.async :refer [chan put! <!]]
+            [clojure.string :as string]))
 
 (defn- auto-resize [el]
   (set! (.. el -style -height) "auto")
   (set! (.. el -style -height) (str (.-scrollHeight el) "px")))
 
-(defn- human-friendly-editable
+(defn editable
   "editable text field that shows and allows editing of a value that is actually different in reality
    useful when state value is not a string
    ex. dates: 'Monday' vs Date('2014-10-24 9:00:00')"
@@ -68,4 +68,3 @@
                             (om/set-state! owner :state "editing")
                             (put! (state :change-chan) (.-value el))
                             (om/set-state! owner :display-value (.-value el))))})))))
-

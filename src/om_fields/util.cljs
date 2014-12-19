@@ -1,6 +1,7 @@
 (ns om-fields.util
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [chan timeout alts! put!]]))
+  (:require [cljs.core.async :refer [chan timeout alts! put! <!]]
+            [clojure.string :refer [blank?]]))
 
 (defn debounce
   "Given the input channel source and a debouncing time of msecs, return a new
@@ -23,3 +24,7 @@
                               (put! out lastv))
                             (recur ::init nil (pop chans))))))))
     out))
+
+
+(defn str-or-nil [s]
+  (if (blank? s) nil s))
