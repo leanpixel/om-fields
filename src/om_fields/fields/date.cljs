@@ -5,7 +5,7 @@
             [cljs-time.format :refer [formatter formatters unparse]]
             [cljs-time.core :refer [date-time]]))
 
-(defmethod field :date [data owner opts]
+(defmethod field :datetime [data owner opts]
   (let [date-format (if (opts :date-format)
                       (formatter (opts :date-format))
                       (formatters :mysql))]
