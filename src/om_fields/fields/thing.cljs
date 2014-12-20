@@ -49,6 +49,7 @@
               (dom/img #js {:className "image" :src (:entity/image thing)})
               (om/build editable thing
                         {:opts {:type :thing
+                                :class "name"
                                 :placeholder placeholder
                                 :edit-key [:entity/name]
                                 :update-fn #(put! (state :input-chan) %)}})
