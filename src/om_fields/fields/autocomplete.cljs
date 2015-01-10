@@ -93,7 +93,8 @@
                                                     (if (state :active-result-index)
                                                       (mod (+ delta (state :active-result-index)) (count (state :results)))
                                                       0))
-                                     (put! (state :input-chan) (state :query))))]
+                                     (when (state :query)
+                                       (put! (state :input-chan) (state :query)))))]
           (dom/div #js {:className "autocomplete"
                         :onKeyDownCapture (fn [e] (case (.-keyCode e)
                                                     38 ; up arrow
