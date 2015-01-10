@@ -14,7 +14,7 @@
   "editable text field that shows and allows editing of a value that is actually different in reality
    useful when state value is not a string
    ex. dates: 'Monday' vs Date('2014-10-24 9:00:00')"
-  [cursor owner {:keys [update-fn id class type disabled placeholder edit-key value-to-string wait string-to-value value-validate multi-line] :as opts}]
+  [cursor owner {:keys [update-fn id class type force? disabled placeholder edit-key value-to-string wait string-to-value value-validate multi-line] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key %))
         string-to-value (or string-to-value identity)
         value-valid? (or value-validate (constantly true))
@@ -47,24 +47,24 @@
       ; update display-value if the actual value is changed elsewhere
       om/IWillReceiveProps
       (will-receive-props [_ next-props]
-        (when (not= (get-in next-props edit-key) (get-in (om/get-props owner) edit-key))
+        (when (or force? (not= (get-in next-props edit-key) (get-in (om/get-props owner) edit-key)))
           (om/set-state! owner :state "start")
           (om/set-state! owner :display-value (value-to-string (get-in next-props edit-key)))))
 
       om/IRenderState
       (render-state [_ state]
         ((if multi-line dom/textarea dom/input)
-         #js {:value (state :display-value)
-              :placeholder placeholder
-              :disabled disabled
-              :ref "textarea"
-              :id id
-              :rows 1
-              :type (name type)
-              :className (str "input" " " class " " (state :state))
-              :onChange (fn [e]
-                          (let [el (.. e -target)]
-                            (when multi-line (auto-resize el))
-                            (om/set-state! owner :state "editing")
-                            (put! (state :change-chan) (.-value el))
-                            (om/set-state! owner :display-value (.-value el))))})))))
+           #js {:value (state :display-value)
+                :placeholder placeholder
+                :disabled disabled
+                :ref "textarea"
+                :id id
+                :rows 1
+                :type (name type)
+                :className (str "input" " " class " " (state :state))
+                :onChange (fn [e]
+                            (let [el (.. e -target)]
+                              (when multi-line (auto-resize el))
+                              (om/set-state! owner :state "editing")
+                              (put! (state :change-chan) (.-value el))
+                              (om/set-state! owner :display-value (.-value el))))})))))
