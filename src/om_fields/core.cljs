@@ -2,6 +2,7 @@
   (:require [om-fields.interface :refer [field]]
             [om-fields.fields.text]
             [om-fields.fields.thing]
+            [om-fields.fields.autocomplete]
             [om-fields.fields.file]
             [om-fields.fields.date]
             [om-fields.fields.multiselect]
