@@ -3,15 +3,15 @@
             [om.dom :as dom :include-macros]
             [om-fields.interface :refer [field]]))
 
-(defmethod field :file [cursor owner {:keys [update-fn edit-key upload] :as opts}]
+(defmethod field :file [cursor owner {:keys [update-fn edit-key upload multiple?] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key %))]
     (reify
       om/IRender
       (render [_]
         (let [handle-files (fn [file-list]
-                             (when (< 0 (.-length file-list))
-                               (upload (aget file-list 0) (fn [url] (update-fn url)))))
-              url (get-in cursor edit-key)]
+                             (if multiple?
+                               (upload file-list (fn [urls] (update-fn urls)))
+                               (upload (aget file-list 0) (fn [url] (update-fn url)))))]
           (dom/div #js {:className "file"}
             ; direct url input
             (dom/div #js {:className "input-wrapper"}
@@ -19,6 +19,7 @@
             ; hidden file input
             (dom/input #js {:type "file"
                             :ref "file-input"
+                            :multiple multiple?
                             :style #js {:display "none"}
                             :onChange (fn [e]
                                         (handle-files (.. e -target -files)))})
@@ -26,6 +27,8 @@
             (dom/div #js {:className "action"
                           :onClick (fn [e]
                                      (.click (om/get-node owner "file-input")))}  " Upload a File")))))))
+
+
 
 (defmethod field :image [cursor owner {:keys [update-fn edit-key upload] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key %))]
