@@ -38,57 +38,89 @@
   function called to render each item in search results, by default: :result-key
 
   ")
+
 (defmethod field :autocomplete
   [cursor owner {:keys [update-fn source edit-key result-key result-display-key search-fn placeholder result-render-fn] :as opts}]
-  (let [update-fn (or update-fn #(om/update! cursor edit-key %))
+  (let [init-value-fn (fn [props]
+                        (get-in (first (filter (fn [i]
+                                                 (= (get-in i result-key) (get-in props edit-key))) source)) result-display-key))
+        update-fn (or update-fn #(om/update! cursor edit-key %))
         result-render-fn (or result-render-fn result-key)
         search-fn (or search-fn (gen-substring-search source))]
     (reify
       om/IInitState
       (init-state [_]
-        {:thing nil
+        {:query (init-value-fn cursor)
          :input-chan (chan)
          :select-chan (chan)
-         :results [] })
+         :results []
+         :active-result-index nil })
 
       om/IWillMount
       (will-mount [_]
         (let [select-chan (om/get-state owner :select-chan)
-              thing-result-chan (chan)
               search-result-chan (chan)
               input-chan (om/get-state owner :input-chan)]
-          (search-fn (get-in cursor edit-key) thing-result-chan)
+
           (go (loop []
                 (let [[v ch] (alts! [select-chan
-                                     thing-result-chan
                                      search-result-chan
                                      input-chan])]
                   (condp = ch
-                    select-chan (do (om/set-state! owner :thing v)
+                    select-chan (do (om/set-state! owner :query (get-in v result-display-key))
                                     (om/set-state! owner :results [])
+                                    (om/set-state! owner :active-result-index nil)
                                     (update-fn (get-in v result-key)))
-                    thing-result-chan (om/set-state! owner :thing (first v))
                     search-result-chan (om/set-state! owner :results v)
                     input-chan (if (empty? v)
                                  (do (update-fn nil)
                                      (om/set-state! owner :results []))
-                                 (search-fn v search-result-chan)))
+                                 (do (om/set-state! owner :query v)
+                                     (search-fn v search-result-chan))))
                   (recur))))))
+
+      ; update display-value if the actual value is changed elsewhere
+      om/IWillReceiveProps
+      (will-receive-props [_ next-props]
+        (om/set-state! owner :query (init-value-fn next-props)))
 
       om/IRenderState
       (render-state [_ state]
-        (dom/div #js {:className "autocomplete"}
-          (om/build editable (state :thing) {:opts {:type :text
-                                                    :placeholder placeholder
-                                                    :edit-key result-display-key
-                                                    :wait 50
-                                                    :update-fn #(put! (state :input-chan) %)}})
-          (when (seq (state :results))
-            (apply dom/ul #js {:className "results"}
-              (map (fn [result]
-                     (dom/li #js {:onClick (fn [e] (put! (state :select-chan) result))
-                                  :style #js {:cursor "pointer"}
-                                  :className "result"}
-                       (result-render-fn result)))
-                   (state :results)))))))))
+        (let [active-result (get (vec (state :results)) (state :active-result-index))
+              move-active-result (fn [delta]
+                                   (if (seq (state :results))
+                                     (om/set-state! owner :active-result-index
+                                                    (if (state :active-result-index)
+                                                      (mod (+ delta (state :active-result-index)) (count (state :results)))
+                                                      0))
+                                     (put! (state :input-chan) (state :query))))]
+          (dom/div #js {:className "autocomplete"
+                        :onKeyDownCapture (fn [e] (case (.-keyCode e)
+                                                    38 ; up arrow
+                                                    (do (move-active-result -1)
+                                                        (.preventDefault e))
+                                                    40 ; down arrow
+                                                    (do (move-active-result 1)
+                                                        (.preventDefault e))
+                                                    13 ; enter
+                                                    (when active-result
+                                                        (put! (state :select-chan) active-result))
+                                                    nil))}
+            (om/build editable state {:opts {:type :text
+                                             :placeholder placeholder
+                                             :edit-key [:query]
+                                             :force true
+                                             :wait 240
+                                             :update-fn #(put! (state :input-chan) %)}})
+            (when (seq (state :results))
+              (apply dom/ul #js {:className "results"
+                                 :onMouseOut (fn [e] (om/set-state! owner :active-result-index nil))}
+                (map-indexed (fn [idx result]
+                               (dom/li #js {:onClick (fn [e] (put! (state :select-chan) result))
+                                            :onMouseOver (fn [e]
+                                                           (om/set-state! owner :active-result-index idx))
+                                            :style #js {:cursor "pointer"}
+                                            :className (str "result" " " (when (= idx (state :active-result-index)) "active"))}
+                                 (result-render-fn result)))
+                             (state :results))))))))))
 
