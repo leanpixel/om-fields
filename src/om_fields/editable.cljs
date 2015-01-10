@@ -14,7 +14,7 @@
   "editable text field that shows and allows editing of a value that is actually different in reality
    useful when state value is not a string
    ex. dates: 'Monday' vs Date('2014-10-24 9:00:00')"
-  [cursor owner {:keys [update-fn id class type disabled placeholder edit-key value-to-string string-to-value value-validate multi-line] :as opts}]
+  [cursor owner {:keys [update-fn id class type disabled placeholder edit-key value-to-string wait string-to-value value-validate multi-line] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key %))
         string-to-value (or string-to-value identity)
         value-valid? (or value-validate (constantly true))
@@ -28,7 +28,7 @@
 
       om/IWillMount
       (will-mount [_]
-        (let [debounced-value-chan (debounce (om/get-state owner :change-chan) 400) ]
+        (let [debounced-value-chan (debounce (om/get-state owner :change-chan) (or wait 400)) ]
           (go (loop []
                 (let [string (-> (<! debounced-value-chan)
                                  string/trim)
