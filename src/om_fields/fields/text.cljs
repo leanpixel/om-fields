@@ -36,6 +36,13 @@
                          :string-to-value (fn [v]
                                             (js/parseInt (str-or-nil v) 10)))))
 
+(defmethod field :currency [data owner opts]
+  (editable data owner (assoc opts
+                         :value-to-string str
+                         :value-validate number?
+                         :string-to-value (fn [v]
+                                            (js/parseFloat (str-or-nil v))))))
+
 (defmethod field :keyword [data owner opts]
   (editable data owner (assoc opts
                          :value-to-string (fn [value]
