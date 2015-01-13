@@ -54,13 +54,14 @@
         {:query (init-value-fn cursor)
          :input-chan (chan)
          :select-chan (chan)
+         :search-result-chan (chan)
          :results []
          :active-result-index nil })
 
       om/IWillMount
       (will-mount [_]
         (let [select-chan (om/get-state owner :select-chan)
-              search-result-chan (chan)
+              search-result-chan (om/get-state owner :search-result-chan)
               input-chan (om/get-state owner :input-chan)]
 
           (go (loop []
@@ -114,7 +115,7 @@
                                              :force true
                                              :wait 240
                                              :on-focus (fn [e]
-                                                         (put! (state :input-chan) (.. e -target -value)))
+                                                         (search-fn (or (.. e -target -value) "") (state :search-result-chan)))
                                              :update-fn #(put! (state :input-chan) %)}})
             (when (seq (state :results))
               (apply dom/ul #js {:className "results"
