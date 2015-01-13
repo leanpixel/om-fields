@@ -14,7 +14,7 @@
   "editable text field that shows and allows editing of a value that is actually different in reality
    useful when state value is not a string
    ex. dates: 'Monday' vs Date('2014-10-24 9:00:00')"
-  [cursor owner {:keys [update-fn on-focus id class type force? disabled placeholder edit-key value-to-string wait string-to-value value-validate multi-line] :as opts}]
+  [cursor owner {:keys [update-fn on-focus on-blur id class type force? disabled placeholder edit-key value-to-string wait string-to-value value-validate multi-line] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key %))
         string-to-value (or string-to-value identity)
         value-valid? (or value-validate (constantly true))
@@ -62,6 +62,7 @@
                 :rows 1
                 :type (name type)
                 :className (str "input" " " class " " (state :state))
+                :onBlur on-blur
                 :onFocus on-focus
                 :onChange (fn [e]
                             (let [el (.. e -target)]
