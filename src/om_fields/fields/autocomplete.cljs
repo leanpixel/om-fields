@@ -40,10 +40,11 @@
   ")
 
 (defmethod field :autocomplete
-  [cursor owner {:keys [update-fn source edit-key result-key result-display-key search-fn placeholder result-render-fn] :as opts}]
-  (let [init-value-fn (fn [props]
-                        (get-in (first (filter (fn [i]
-                                                 (= (get-in i result-key) (get-in props edit-key))) source)) result-display-key))
+  [cursor owner {:keys [update-fn init-value-fn source edit-key result-key result-display-key search-fn placeholder result-render-fn] :as opts}]
+  (let [init-value-fn (or init-value-fn
+                          (fn [props]
+                            (get-in (first (filter (fn [i]
+                                                     (= (get-in i result-key) (get-in props edit-key))) source)) result-display-key)))
         update-fn (or update-fn #(om/update! cursor edit-key %))
         result-render-fn (or result-render-fn result-key)
         search-fn (or search-fn (gen-substring-search source))]
