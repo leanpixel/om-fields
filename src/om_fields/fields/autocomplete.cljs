@@ -75,7 +75,7 @@
                     search-result-chan (om/set-state! owner :results v)
                     input-chan (if (empty? v)
                                  (do (update-fn nil)
-                                     (om/set-state! owner :results []))
+                                     (search-fn v search-result-chan))
                                  (do (om/set-state! owner :query v)
                                      (search-fn v search-result-chan))))
                   (recur))))))
@@ -113,6 +113,8 @@
                                              :edit-key [:query]
                                              :force true
                                              :wait 240
+                                             :on-focus (fn [e]
+                                                         (put! (state :input-chan) (.. e -target -value)))
                                              :update-fn #(put! (state :input-chan) %)}})
             (when (seq (state :results))
               (apply dom/ul #js {:className "results"
