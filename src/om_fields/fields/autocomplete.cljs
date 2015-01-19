@@ -105,6 +105,10 @@
                                                     40 ; down arrow
                                                     (do (move-active-result 1)
                                                         (.preventDefault e))
+                                                    9 ; tab
+                                                    (om/set-state! owner :results [])
+                                                    27 ; esc
+                                                    (om/set-state! owner :results [])
                                                     13 ; enter
                                                     (when active-result
                                                         (put! (state :select-chan) active-result))
