@@ -1,7 +1,8 @@
 (ns om-fields.fields.text
   (:require [om-fields.interface :refer [field]]
             [om-fields.editable :refer [editable]]
-            [om-fields.util :refer [str-or-nil]]))
+            [om-fields.util :refer [str-or-nil]]
+            [clojure.string :as string]))
 
 
 (defmethod field :text [data owner opts]
@@ -36,12 +37,18 @@
                          :string-to-value (fn [v]
                                             (js/parseInt (str-or-nil v) 10)))))
 
+(defn str-insert
+  "Insert c in string s at index i."
+  [s c i]
+  (str (subs s 0 i) c (subs s i)))
+
 (defmethod field :currency [data owner opts]
   (editable data owner (assoc opts
-                         :value-to-string str
+                         :value-to-string (fn [v]
+                                            (str-insert (str v) "." (- (count (str v)) 2) ))
                          :value-validate number?
                          :string-to-value (fn [v]
-                                            (js/parseFloat (str-or-nil v))))))
+                                            (js/parseInt (string/replace (str-or-nil v) #"\." ""))))))
 
 (defmethod field :keyword [data owner opts]
   (editable data owner (assoc opts
