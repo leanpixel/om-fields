@@ -114,8 +114,6 @@
                                              :edit-key [:query]
                                              :force true
                                              :wait 240
-                                             :on-blur (fn [e]
-                                                        (om/set-state! owner :results []))
                                              :on-focus (fn [e]
                                                          (search-fn (or (.. e -target -value) "") (state :search-result-chan)))
                                              :update-fn #(put! (state :input-chan) %)}})
