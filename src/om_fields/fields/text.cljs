@@ -45,7 +45,8 @@
 (defmethod field :currency [data owner opts]
   (editable data owner (assoc opts
                          :value-to-string (fn [v]
-                                            (str-insert (str v) "." (- (count (str v)) 2) ))
+                                            (when v
+                                              (str-insert (str v) "." (- (count (str v)) 2) )))
                          :value-validate number?
                          :string-to-value (fn [v]
                                             (js/parseInt (string/replace (str-or-nil v) #"\." ""))))))
