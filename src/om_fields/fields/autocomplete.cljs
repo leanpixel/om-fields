@@ -40,10 +40,11 @@
   ")
 
 (defmethod field :autocomplete
-  [cursor owner {:keys [update-fn source edit-key result-key result-display-key search-fn placeholder result-render-fn] :as opts}]
-  (let [init-value-fn (fn [props]
-                        (get-in (first (filter (fn [i]
-                                                 (= (get-in i result-key) (get-in props edit-key))) source)) result-display-key))
+  [cursor owner {:keys [update-fn init-value-fn source edit-key result-key result-display-key search-fn placeholder result-render-fn] :as opts}]
+  (let [init-value-fn (or init-value-fn
+                          (fn [props]
+                            (get-in (first (filter (fn [i]
+                                                     (= (get-in i result-key) (get-in props edit-key))) source)) result-display-key)))
         update-fn (or update-fn #(om/update! cursor edit-key %))
         result-render-fn (or result-render-fn result-key)
         search-fn (or search-fn (gen-substring-search source))]
@@ -53,13 +54,14 @@
         {:query (init-value-fn cursor)
          :input-chan (chan)
          :select-chan (chan)
+         :search-result-chan (chan)
          :results []
          :active-result-index nil })
 
       om/IWillMount
       (will-mount [_]
         (let [select-chan (om/get-state owner :select-chan)
-              search-result-chan (chan)
+              search-result-chan (om/get-state owner :search-result-chan)
               input-chan (om/get-state owner :input-chan)]
 
           (go (loop []
@@ -74,7 +76,7 @@
                     search-result-chan (om/set-state! owner :results v)
                     input-chan (if (empty? v)
                                  (do (update-fn nil)
-                                     (om/set-state! owner :results []))
+                                     (search-fn v search-result-chan))
                                  (do (om/set-state! owner :query v)
                                      (search-fn v search-result-chan))))
                   (recur))))))
@@ -103,6 +105,10 @@
                                                     40 ; down arrow
                                                     (do (move-active-result 1)
                                                         (.preventDefault e))
+                                                    9 ; tab
+                                                    (om/set-state! owner :results [])
+                                                    27 ; esc
+                                                    (om/set-state! owner :results [])
                                                     13 ; enter
                                                     (when active-result
                                                         (put! (state :select-chan) active-result))
@@ -112,6 +118,8 @@
                                              :edit-key [:query]
                                              :force true
                                              :wait 240
+                                             :on-focus (fn [e]
+                                                         (search-fn (or (.. e -target -value) "") (state :search-result-chan)))
                                              :update-fn #(put! (state :input-chan) %)}})
             (when (seq (state :results))
               (apply dom/ul #js {:className "results"
