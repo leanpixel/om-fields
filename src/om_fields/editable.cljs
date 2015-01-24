@@ -29,7 +29,8 @@
 
       om/IWillMount
       (will-mount [_]
-        (let [debounced-value-chan (debounce (om/get-state owner :change-chan) (or wait 400)) ]
+        (let [debounced-value-chan (debounce (om/get-state owner :change-chan) (or wait 400))
+              kill-chan (om/get-state owner :kill-chan)]
           (go (loop []
                 (let [[v ch] (alts! [debounced-value-chan kill-chan])]
                   (when (= ch debounced-value-chan)
