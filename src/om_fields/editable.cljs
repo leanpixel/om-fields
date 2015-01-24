@@ -3,7 +3,7 @@
   (:require [om.core :as om :include-macros]
             [om.dom :as dom :include-macros]
             [om-fields.util :refer [debounce]]
-            [cljs.core.async :refer [chan put! <!]]
+            [cljs.core.async :refer [chan put! <! alts!]]
             [clojure.string :as string]))
 
 (defn- auto-resize [el]
@@ -24,25 +24,32 @@
       (init-state [_]
         {:change-chan (chan)
          :display-value (value-to-string (get-in cursor edit-key))
+         :kill-chan (chan)
          :state "start"})
 
       om/IWillMount
       (will-mount [_]
         (let [debounced-value-chan (debounce (om/get-state owner :change-chan) (or wait 400)) ]
           (go (loop []
-                (let [string (-> (<! debounced-value-chan)
-                                 string/trim)
-                      value (string-to-value string)]
-                  (if (value-valid? value)
-                    (do (om/set-state! owner :state "saved")
-                        (update-fn value))
-                    (om/set-state! owner :state "invalid"))
-                  (recur))))))
+                (let [[v ch] (alts! [debounced-value-chan kill-chan])]
+                  (when (= ch debounced-value-chan)
+                    (let [string (-> v
+                                     string/trim)
+                          value (string-to-value string)]
+                      (if (value-valid? value)
+                        (do (om/set-state! owner :state "saved")
+                            (update-fn value))
+                        (om/set-state! owner :state "invalid"))
+                      (recur))))))))
 
       ; update textarea size initially
       om/IDidMount
       (did-mount [_]
         (when multi-line (auto-resize (om/get-node owner "textarea"))))
+
+      om/IWillUnmount
+      (will-unmount [_]
+        (put! (om/get-state owner :kill-chan) true))
 
       ; update display-value if the actual value is changed elsewhere
       om/IWillReceiveProps
