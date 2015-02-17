@@ -42,7 +42,10 @@
       ; update textarea size initially
       om/IDidMount
       (did-mount [_]
-        (when multi-line (auto-resize (om/get-node owner "textarea"))))
+        (let [textarea (om/get-node owner "textarea")]
+          (when multi-line
+            (auto-resize textarea)
+            (.. js/window (addEventListener "resize" (fn [_] (auto-resize textarea)))))))
 
       ; update display-value if the actual value is changed elsewhere
       om/IWillReceiveProps
