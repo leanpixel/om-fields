@@ -1,6 +1,6 @@
-(defproject org.clojars.leanpixel/om-fields "1.6.3"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+(defproject org.clojars.leanpixel/om-fields "1.6.4"
+  :description "Fancy input components for om"
+  :url "https://github.com/leanpixel/om-fields"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
