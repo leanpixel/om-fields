@@ -3,8 +3,8 @@
             [om.dom :as dom :include-macros]
             [om-fields.interface :refer [field]]))
 
-(defmethod field :checkbox [cursor owner {:keys [update-fn edit-key label] :as opts}]
-  (let [update-fn (or update-fn #(om/update! cursor edit-key %))]
+(defmethod field :checkbox [cursor owner {:keys [update-fn edit-key label transact-tag] :as opts}]
+  (let [update-fn (or update-fn #(om/update! cursor edit-key % transact-tag))]
     (reify
       om/IRender
       (render [_]
