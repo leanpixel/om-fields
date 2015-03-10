@@ -8,10 +8,8 @@
 
 (defn- auto-resize [el]
   (set! (.. el -style -height) "auto")
-  ; safari needs a timeout
-  (js/window.setTimeout
-    (fn [_]
-      (set! (.. el -style -height) (str (.-scrollHeight el) "px"))) 100))
+  (set! (.. el -style -height)
+        (str (min 300 (.-scrollHeight el)) "px")))
 
 (defn editable
   "editable text field that shows and allows editing of a value that is actually different in reality
