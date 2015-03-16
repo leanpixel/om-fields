@@ -16,42 +16,62 @@
 
 
 (comment
- "
-  :update-fn - optional
-  function called when field is ready to persist back to parent, by default: (fn [value] (om/update! cursor edit-key value))
-
-  :source - optional
-
+  "
   :edit-key - required
+    key to extract out of passed-in cursor to use as initial value (and to update!, if using default update-fn)
 
-  :result-key - required
-  key to get-in result to pass to update-fn, i.e. if you want the :id of the result returned, pass [:id]
+  :update-fn - optional
+    function called when field is ready to persist back to parent
+    default: (fn [value] (om/update! cursor edit-key value))
 
-  :result-display-key - required
-  key used to display the selected item, ex. [:name]
+  :val-to-str - optional
+    function that converts the initial value to a string to display in the input
+    default: str
 
-  :search-fn - optional
+  :search-fn - required
+    function that returns array of result objects given the input search string
+    can use gen-substring-search
+    sample:
+    (fn [input-string return-chan]
+      (let [results [{:foo 'bar'}]
+        (put! return-chan results)))
 
-  :placeholder - optional
+  :choice-render-fn - optional
+    function used to display the chosen result, ex. :name
+    template: (fn [result-object] (str result-object))
+    default: (obj :edit-key)
 
   :result-render-fn - optional
-  function called to render each item in search results, by default: :result-key
+    function called to render each item in search results
+    template: (fn [result-object] (str result-object))
+    default: choice-render-fn
+
+  :placeholder - optional
+    default: nil
+
+  :class - optional
+    default: nil
 
   ")
 
 (defmethod field :autocomplete
-  [cursor owner {:keys [update-fn init-value-fn source edit-key result-key result-display-key search-fn placeholder result-render-fn] :as opts}]
-  (let [init-value-fn (or init-value-fn
-                          (fn [props]
-                            (get-in (first (filter (fn [i]
-                                                     (= (get-in i result-key) (get-in props edit-key))) source)) result-display-key)))
-        update-fn (or update-fn #(om/update! cursor edit-key %))
-        result-render-fn (or result-render-fn result-key)
-        search-fn (or search-fn (gen-substring-search source))]
+  [cursor owner {:keys [edit-key ; required
+                        update-fn
+                        val-to-str ; optional
+                        search-fn ; required
+                        choice-render-fn
+                        result-render-fn
+                        placeholder] :as opts}]
+
+  (let [update-fn (or update-fn #(om/update! cursor edit-key %))
+        val-to-str (or val-to-str str)
+        choice-render-fn (or choice-render-fn (fn [o] (o edit-key)))
+        result-render-fn (or result-render-fn choice-render-fn)]
+
     (reify
       om/IInitState
       (init-state [_]
-        {:query (init-value-fn cursor)
+        {:query (val-to-str (get-in cursor edit-key))
          :input-chan (chan)
          :select-chan (chan)
          :search-result-chan (chan)
@@ -69,10 +89,10 @@
                                      search-result-chan
                                      input-chan])]
                   (condp = ch
-                    select-chan (do (om/set-state! owner :query (get-in v result-display-key))
+                    select-chan (do (om/set-state! owner :query (choice-render-fn v))
                                     (om/set-state! owner :results [])
                                     (om/set-state! owner :active-result-index nil)
-                                    (update-fn (get-in v result-key)))
+                                    (update-fn v))
                     search-result-chan (om/set-state! owner :results v)
                     input-chan (if (empty? v)
                                  (do (update-fn nil)
@@ -84,7 +104,7 @@
       ; update display-value if the actual value is changed elsewhere
       om/IWillReceiveProps
       (will-receive-props [_ next-props]
-        (om/set-state! owner :query (init-value-fn next-props)))
+        (om/set-state! owner :query (val-to-str (get-in next-props edit-key))))
 
       om/IRenderState
       (render-state [_ state]
