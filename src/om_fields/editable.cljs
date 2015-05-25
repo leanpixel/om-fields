@@ -8,7 +8,8 @@
 
 (defn- auto-resize [el]
   (set! (.. el -style -height) "auto")
-  (set! (.. el -style -height) (str (.-scrollHeight el) "px")))
+  (set! (.. el -style -height)
+        (str (min 300 (.-scrollHeight el)) "px")))
 
 (defn editable
   "editable text field that shows and allows editing of a value that is actually different in reality
@@ -46,7 +47,10 @@
       ; update textarea size initially
       om/IDidMount
       (did-mount [_]
-        (when multi-line (auto-resize (om/get-node owner "textarea"))))
+        (let [textarea (om/get-node owner "textarea")]
+          (when multi-line
+            (auto-resize textarea)
+            (.. js/window (addEventListener "resize" (fn [_] (auto-resize textarea)))))))
 
       om/IWillUnmount
       (will-unmount [_]
