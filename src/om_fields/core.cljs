@@ -6,7 +6,8 @@
             [om-fields.fields.file]
             [om-fields.fields.date]
             [om-fields.fields.multiselect]
-            [om-fields.fields.checkbox]))
+            [om-fields.fields.checkbox]
+            [om-fields.fields.select]))
 
 (def ^:export input-available
   (keys (methods field)))
