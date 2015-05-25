@@ -3,8 +3,8 @@
             [om.dom :as dom :include-macros]
             [om-fields.interface :refer [field]]))
 
-(defmethod field :select [cursor owner {:keys [edit-key update-fn choices]}]
-  (let [update-fn (or (update-fn (partial om/update! cursor edit-key)))]
+(defmethod field :select [cursor owner {:keys [edit-key update-fn choices transact-tag]}]
+  (let [update-fn (or (update-fn #(om/update! cursor edit-key % transact-tag)))]
     (reify
       om/IRender
       (render [_]
