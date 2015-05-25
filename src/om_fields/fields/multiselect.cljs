@@ -33,11 +33,14 @@
 
       om/IWillUpdate
       (will-update [_ new-props new-state]
-        ; put to change-chan whenever state changes
-        ; (but NOT when the props change, which happens after all updates)
-        (when (= new-props (om/get-props owner))
-          (let [interests (union (new-state :selected) (new-state :new))]
-            (put! (new-state :change-chan) interests))))
+        (when (not= new-props (om/get-props owner))
+          (om/update-state! owner (fn [s] (assoc s
+                                            :selected (set (get-in new-props edit-key))
+                                            :new #{}))))
+
+        (when (not= new-state (om/get-render-state owner))
+          (let [items (union (new-state :selected) (new-state :new))]
+            (put! (new-state :change-chan) items))))
 
       om/IRenderState
       (render-state [_ state]
