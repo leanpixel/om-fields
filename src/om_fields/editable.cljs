@@ -35,9 +35,7 @@
           (go (loop []
                 (let [[v ch] (alts! [debounced-value-chan kill-chan])]
                   (when (= ch debounced-value-chan)
-                    (let [string (-> v
-                                     string/trim)
-                          value (string-to-value string)]
+                    (let [value (string-to-value string)]
                       (if (value-valid? value)
                         (do (om/set-state! owner :state "saved")
                             (update-fn value))
