@@ -37,7 +37,7 @@
                   (when (= ch debounced-value-chan)
                     (let [value (string-to-value v)]
                       (if (value-valid? value)
-                        (do (.log js/console "update value") (om/set-state! owner :state "saved")
+                        (do (om/set-state! owner :state "saved")
                             (update-fn value))
                         (om/set-state! owner :state "invalid"))
                       (recur))))))))
