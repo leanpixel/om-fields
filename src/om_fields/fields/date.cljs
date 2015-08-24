@@ -17,8 +17,7 @@
                                              (not (js/isNaN (.getTime value))))
                            :string-to-value (fn [string]
                                               (when-let [s (str-or-nil string)]
-                                                (js/Date.create s)))
-                           :delay-save? true))))
+                                                (js/Date.create s)))))))
 
 
 
