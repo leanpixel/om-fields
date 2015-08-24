@@ -1,5 +1,6 @@
 (ns om-fields.core
-  (:require [om-fields.interface :refer [field]]
+  (:require [cljsjs.sugar]
+            [om-fields.interface :refer [field]]
             [om-fields.fields.text]
             [om-fields.fields.thing]
             [om-fields.fields.autocomplete]
