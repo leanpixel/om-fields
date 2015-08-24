@@ -4,7 +4,7 @@
             [om-fields.interface :refer [field]]))
 
 (defmethod field :select [cursor owner {:keys [edit-key update-fn choices transact-tag]}]
-  (let [update-fn (or (update-fn #(om/update! cursor edit-key % transact-tag)))]
+  (let [update-fn (or update-fn #(om/update! cursor edit-key % transact-tag))]
     (reify
       om/IRender
       (render [_]

@@ -15,7 +15,7 @@
   "editable text field that shows and allows editing of a value that is actually different in reality
    useful when state value is not a string
    ex. dates: 'Monday' vs Date('2014-10-24 9:00:00')"
-  [cursor owner {:keys [update-fn on-focus on-blur id class type force? disabled placeholder edit-key value-to-string wait string-to-value value-validate multi-line transact-tag] :as opts}]
+  [cursor owner {:keys [update-fn on-focus on-blur id class type force? disabled placeholder edit-key value-to-string wait string-to-value value-validate multi-line transact-tag delay-save?] :as opts}]
   (let [update-fn (or update-fn #(om/update! cursor edit-key % transact-tag))
         string-to-value (or string-to-value identity)
         value-valid? (or value-validate (constantly true))
@@ -35,9 +35,7 @@
           (go (loop []
                 (let [[v ch] (alts! [debounced-value-chan kill-chan])]
                   (when (= ch debounced-value-chan)
-                    (let [string (-> v
-                                     string/trim)
-                          value (string-to-value string)]
+                    (let [value (string-to-value v)]
                       (if (value-valid? value)
                         (do (om/set-state! owner :state "saved")
                             (update-fn value))
@@ -74,11 +72,14 @@
                 :rows 1
                 :type (name type)
                 :className (str "input" " " class " " (state :state))
-                :onBlur on-blur
+                :onBlur (fn [e]
+                          (when delay-save?
+                            (put! (state :change-chan) (.. e -target -value)))
+                          (when on-blur (on-blur e)))
                 :onFocus on-focus
                 :onChange (fn [e]
                             (let [el (.. e -target)]
                               (when multi-line (auto-resize el))
                               (om/set-state! owner :state "editing")
-                              (put! (state :change-chan) (.-value el))
+                              (when-not delay-save? (put! (state :change-chan) (.-value el)))
                               (om/set-state! owner :display-value (.-value el))))})))))
