@@ -1,4 +1,4 @@
-(defproject org.clojars.leanpixel/om-fields "1.8.8"
+(defproject org.clojars.leanpixel/om-fields "1.8.9"
   :description "Fancy input components for om"
   :url "https://github.com/leanpixel/om-fields"
   :license {:name "Eclipse Public License"
@@ -10,7 +10,7 @@
                  [org.clojure/clojurescript "0.0-3058"]
                  [com.andrewmcveigh/cljs-time "0.3.2"]
                  [org.omcljs/om "0.8.8"]
-                 [org.clojars.leanpixel/sugar "1.4.1-1"]]
+                 [org.clojars.leanpixel/sugar "1.4.1-2"]]
 
   :plugins [[jamesnvc/lein-lesscss "1.3.4"]]
 
