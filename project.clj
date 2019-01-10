@@ -1,4 +1,4 @@
-(defproject org.clojars.leanpixel/om-fields "1.9.0"
+(defproject org.clojars.leanpixel/om-fields "1.10.0"
   :description "Fancy input components for om"
   :url "https://github.com/leanpixel/om-fields"
   :license {:name "Eclipse Public License"
