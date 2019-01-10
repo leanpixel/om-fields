@@ -8,11 +8,12 @@
     (reify
       om/IRender
       (render [_]
-        (dom/label #js {:style #js {:cursor "pointer"}}
+        (dom/label #js {:style #js {:cursor "pointer"}
+                        :className (str (:label-class opts))}
           (dom/input #js {:type "checkbox"
                           :style #js {:cursor "pointer"}
+                          :className (str (:class opts))
                           :onClick (fn [e]
                                       (update-fn (.. e -target -checked)))
                           :checked (get-in cursor edit-key) })
           label)))))
-
