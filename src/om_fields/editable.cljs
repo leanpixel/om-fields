@@ -68,6 +68,8 @@
                 :placeholder placeholder
                 :disabled disabled
                 :ref "textarea"
+                :required (opts :required)
+                :pattern (opts :pattern)
                 :id id
                 :rows 1
                 :type (name type)
